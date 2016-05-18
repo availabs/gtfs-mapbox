@@ -6,6 +6,9 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = (options) => ({
+  node: {
+    fs: "empty"
+  },  
   entry: options.entry,
   output: Object.assign({ // Compile into js/build.js
     path: path.resolve(process.cwd(), 'build'),
@@ -34,6 +37,9 @@ module.exports = (options) => ({
     }, {
       test: /\.jpe?g$|\.gif$|\.png$|\.svg$/i,
       loader: 'url-loader?limit=10000',
+    }, {
+      test: /\.json$/, 
+      loader: 'json',
     }, {
       test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
       loader: 'file?name=fonts/[name].[hash].[ext]&mimetype=application/font-woff',

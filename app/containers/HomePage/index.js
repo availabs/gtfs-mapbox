@@ -30,6 +30,7 @@ import H2 from 'components/H2';
 import List from 'components/List';
 import ListItem from 'components/ListItem';
 import LoadingIndicator from 'components/LoadingIndicator';
+import GTFSMap from 'components/GTFSMap';
 
 import styles from './styles.css';
 
@@ -73,7 +74,8 @@ export class HomePage extends React.Component {
 
     return (
       <article>
-        <div>
+        <GTFSMap />
+        {/*<div>
           <section className={`${styles.textSection} ${styles.centered}`}>
             <H2>Start your next react project in seconds</H2>
             <p>A highly scalable, offline-first foundation with the best DX and a focus on performance and best practices</p>
@@ -96,7 +98,7 @@ export class HomePage extends React.Component {
             {mainContent}
           </section>
           <Button handleRoute={this.openFeaturesPage}>Features</Button>
-        </div>
+        </div>*/}
       </article>
     );
   }
