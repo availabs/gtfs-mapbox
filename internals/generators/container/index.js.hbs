@@ -1,0 +1,52 @@
+/*
+ *
+ * {{ properCase name }}
+ *
+ */
+
+import React from 'react';
+import { connect } from 'react-redux';
+
+{{#if wantActionsAndReducer}}
+import { createSelector } from 'reselect';
+import {
+  select{{properCase name}},
+} from './selectors';
+{{/if}}
+
+{{#if wantCSS}}
+import styles from './styles.css';
+{{/if}}
+
+class {{ properCase name }} extends React.Component {
+  render() {
+    return (
+      {{#if wantCSS}}
+      <div className={ styles.{{ camelCase name }} }>
+      {{else}}
+      <div>
+      {{/if}}
+      </div>
+    );
+  }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    dispatch,
+  };
+}
+
+{{#if wantActionsAndReducer}}
+export default connect(createSelector(
+  select{{properCase name}}(),
+), mapDispatchToProps)({{ properCase name }});
+{{else}}
+function mapStateToProps(state) {
+  return {
+
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)({{ properCase name }});
+{{/if}}
