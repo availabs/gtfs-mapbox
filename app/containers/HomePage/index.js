@@ -74,7 +74,7 @@ export class HomePage extends React.Component {
 
     return (
       <article>
-        <GTFSMap />
+        <GTFSMap width={800} height={800} latitude={37.7577} longitude={-122.4376} zoom={8} />
         {/*<div>
           <section className={`${styles.textSection} ${styles.centered}`}>
             <H2>Start your next react project in seconds</H2>

@@ -4,6 +4,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
+// const transform = require('transform-loader');
 
 module.exports = (options) => ({
   node: {
@@ -15,7 +16,28 @@ module.exports = (options) => ({
     publicPath: '/',
   }, options.output), // Merge with env dependent settings
   module: {
-    loaders: [{
+    loaders: [
+    /*{
+        test: /render[\/\\]shaders\.js$/,
+        loader: 'transform/cacheable',
+        query: 'brfs'
+    }, {
+        test: /[\/\\]webworkify[\/\\]index.js\.js$/,
+        loader: 'worker'
+    },*/ 
+    {
+        test: /\.js$/,
+        include: path.resolve(__dirname, 'node_modules/mapbox-gl/js/render/painter/use_program.js'),
+        loader: 'transform/cacheable?brfs'
+    }, {
+        test: /\.js$/,
+        include: path.resolve(__dirname, 'node_modules/mapbox-gl/js/render/shaders.js'),
+        loader: 'transform/cacheable?brfs'
+    }, {
+        test: /\.js$/,
+        include: path.resolve(__dirname, 'node_modules/webworkify/index.js'),
+        loader: 'worker'
+    }, {
       test: /\.js$/, // Transform all .js files required somewhere with Babel
       loader: 'babel',
       exclude: /node_modules/,
@@ -56,6 +78,11 @@ module.exports = (options) => ({
       test: /\.html$/,
       loader: 'html-loader',
     }],
+    postLoaders: [{
+        include: /node_modules\/mapbox-gl/,
+        loader: 'transform',
+        query: 'brfs'
+    }]
   },
   plugins: options.plugins.concat([
     new webpack.optimize.CommonsChunkPlugin('common.js'),
@@ -82,6 +109,9 @@ module.exports = (options) => ({
       '.jsx',
       '.react.js',
     ],
+    alias: {
+        webworkify: 'webworkify-webpack'
+    },
     packageMains: [
       'jsnext:main',
       'main',
