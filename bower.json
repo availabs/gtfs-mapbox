@@ -1,0 +1,21 @@
+{
+  "name": "gtfs-mapbox",
+  "description": "A mapbox implementation of the GTFS demo",
+  "main": "",
+  "authors": [
+    "Alan Dai"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/availabs/gtfs-mapbox",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6"
+  }
+}

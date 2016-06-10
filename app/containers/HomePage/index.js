@@ -73,33 +73,7 @@ export class HomePage extends React.Component {
     }
 
     return (
-      <article>
-        <GTFSMap width={800} height={800} latitude={37.7577} longitude={-122.4376} zoom={8} />
-        {/*<div>
-          <section className={`${styles.textSection} ${styles.centered}`}>
-            <H2>Start your next react project in seconds</H2>
-            <p>A highly scalable, offline-first foundation with the best DX and a focus on performance and best practices</p>
-          </section>
-          <section className={styles.textSection}>
-            <H2>Try me!</H2>
-            <form className={styles.usernameForm} onSubmit={this.props.onSubmitForm}>
-              <label htmlFor="username">Show Github repositories by
-                <span className={styles.atPrefix}>@</span>
-                <input
-                  id="username"
-                  className={styles.input}
-                  type="text"
-                  placeholder="mxstbr"
-                  value={this.props.username}
-                  onChange={this.props.onChangeUsername}
-                />
-              </label>
-            </form>
-            {mainContent}
-          </section>
-          <Button handleRoute={this.openFeaturesPage}>Features</Button>
-        </div>*/}
-      </article>
+        <GTFSMap width={1400} height={700} latitude={37.7577} longitude={-122.4376} zoom={8} />
     );
   }
 }

@@ -20,13 +20,7 @@ import styles from './styles.css';
 
 function App(props) {
   return (
-    <div className={styles.wrapper}>
-      <A className={styles.logoWrapper} href="https://twitter.com/mxstbr">
-        <Img className={styles.logo} src={Banner} alt="react-boilerplate - Logo" />
-      </A>
-      {props.children}
-      <Footer />
-    </div>
+    <div>{props.children}</div>
   );
 }
 
