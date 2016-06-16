@@ -73,7 +73,7 @@ export class HomePage extends React.Component {
     }
 
     return (
-        <GTFSMap width={1400} height={700} latitude={37.7577} longitude={-122.4376} zoom={8} />
+        <GTFSMap />
     );
   }
 }

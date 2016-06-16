@@ -19,8 +19,9 @@ import A from 'components/A';
 import styles from './styles.css';
 
 function App(props) {
+    console.log(props);
   return (
-    <div>{props.children}</div>
+    <div id="map-wrapper">{props.children}</div>
   );
 }
 

@@ -40,3 +40,9 @@ body.fontLoaded {
   margin: 0 auto;
   display: block;
 }
+
+:global(#map-wrapper) {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}

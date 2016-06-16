@@ -1,10 +1,27 @@
 import React, { PropTypes } from "react";
-import MapGL from "react-map-gl";
+// import MapGL from "react-map-gl";
+import mapboxgl from 'mapbox-gl';
+// var mapboxgl = require("mapbox-gl");
 import d3 from "d3";
+var topojson = require("topojson");
+// import * as topojson from "topojson";
 import * as request from "superagent";
-import * from "react-bootstrap";
+import * as ReactBootstrap from "react-bootstrap";
+import * as DatePicker from "react-bootstrap-date-picker";
+
 const assign = require('object-assign');
 const apiUrl = "http://api.availabs.org/gtfs/";
+
+/*mapboxgl.accessToken = "pk.eyJ1IjoiY2FrZXNvZndyYXRoIiwiYSI6Ijk5YWI3OTlhMGIxN2I1OWYzYjhlOWJmYjEwNTRjODU0In0._RjYIzLsA5cU-YM6dxGOLQ";
+var map = new mapboxgl.Map({
+    container: "map",
+    center: [-95, 39],
+    zoom: 4,
+    style: "mapbox://styles/mapbox/streets-v9"
+});*/
+
+// console.log(map);
+console.log(topojson);
 
 class GTFSMap extends React.Component {
     constructor(props) {
@@ -24,6 +41,7 @@ class GTFSMap extends React.Component {
             stopIndex: {},
             currentPage: null,
             pageSize: null,
+            map: null,
             viewport: {
                 latitude: 39,
                 longitude: -95,
@@ -34,16 +52,34 @@ class GTFSMap extends React.Component {
                 isDragging: null
               }
         };
+
         request.get(apiUrl + "agency").end((err, res) => {
             let data = JSON.parse(res.text);
-            this.agencies = data;
-            this.loading_agencies = true;
+            /*this.agencies = data;
+            this.loading_agencies = true;*/
+            this.setState({
+                agencies: data,
+                loading_agencies: true
+            });
         });
     }
 
-    _onChangeViewport = (newViewport) => {
-        var viewport = assign({}, this.state.viewport, newViewport);
-        this.setState({viewport});
+    componentDidMount = () => {
+        mapboxgl.accessToken = "pk.eyJ1IjoiY2FrZXNvZndyYXRoIiwiYSI6Ijk5YWI3OTlhMGIxN2I1OWYzYjhlOWJmYjEwNTRjODU0In0._RjYIzLsA5cU-YM6dxGOLQ";
+        
+        var map = new mapboxgl.Map({
+            container: "map",
+            center: [-95, 39],
+            zoom: 4,
+            style: "mapbox://styles/mapbox/streets-v9"
+        });
+        this.setState({
+            map
+        });
+
+        map.on("load", () => {
+            this.loadRoutes(2, function(){});
+        });
     }
 
     loadAgency = (agency_id) => {
@@ -139,15 +175,87 @@ class GTFSMap extends React.Component {
     loadRoutes = (id, cb) => {
         // d3.select("#routes").remove();
         // d3.select("#stops").remove();
-
         this.setState({
             routes: []
         });
 
-        request.get(apiUrl + "agency/" + id + "/routes/").end((err, res) => {
-            let data = JSON.parse(res.text);
-            // do layers?
-            cb();
+        request.get(apiUrl + "agency/" + id + "/routes/").then((res) => {
+            if(res) {
+                let data = JSON.parse(res.text),
+                    bounds = d3.geo.bounds(data);
+                // do layers?
+                console.log(res, data);
+                let geo = data;
+                /*let topology = topojson.topology(
+                    {routes: data},
+                    {
+                        "property-transform": (feature) => {
+                            return feature.properties;
+                        },
+                        "quantization": 1e9
+                    }
+                );
+
+                let geo = { type: "FeatureCollection", features: [] };
+
+                topology.objects.routes.geometries.forEach(function(d){
+                    let routeSwap = {type: "GeometryCollection", geometries:[d]}
+                    let test = topojson.mesh(topology, routeSwap, function(a, b) {  return a.properties; });
+                    let feature = {type:'Feature', properties:d.properties, geometry:{type:test.type, coordinates:test.coordinates}};
+                    geo.features.push(feature);
+                });*/
+
+                // console.log([bounds[0].reverse(),bounds[1].reverse()]);
+                let i = 0;
+                this.state.map.fitBounds([bounds[0],bounds[1]])
+                geo.features.forEach((feature) => {
+                    feature.geometry.coordinates.forEach((coord) => {
+                        // console.log(feature, coord);
+                        this.state.map.addSource("route_source" + i, {
+                            "type": "geojson",
+                            "data": {
+                                "type": "Feature",
+                                "properties": feature.properties,
+                                "geometry": {
+                                    "type": "LineString",
+                                    "coordinates": coord
+                                }
+                            }
+                        });
+                        this.state.map.addLayer({
+                            id: "route_layer" + i,
+                            type: "line",
+                            source: "route_source" + i,
+                            paint: {
+                                "line-color": "#" + (feature.properties.route_color || "000"),
+                                "line-width": 3
+                            }
+                        });
+                        i++;
+                    });
+                });
+
+                /*this.state.map.addSource("routes_source", {
+                    type: "geojson",
+                    "data": geo
+                });
+                console.log(geo);
+                this.state.map.addLayer({
+                    id: "routes_layer",
+                    type: "line",
+                    source: "routes_source",
+                    paint: {
+                        "fill-color": "#000"
+                    }
+                });*/
+                geo.features.forEach((route) => {
+                    this.routes.push(route.properties);
+                });
+                
+                cb();
+            }
+        }, (e) => {
+            console.log("err", e);
         });
     }
 
@@ -156,20 +264,32 @@ class GTFSMap extends React.Component {
             stops: []
         });
 
-        request.get(apiUrl + "agency/" + id + "/stops/").end((err, res) => {
+        request.get(apiUrl + "agency/" + id + "/stops/").then((err, res) => {
             let data = JSON.parse(res.text);
             // plot stops
+            console.log(data);
             cb();
+        }, (e) => {
+            console.log("err", e);
         });
     }
 
-    _handleAgencySelect = () {
+    _handleAgencySelect = () => {
         console.log("handle agency select", arguments); // set current_agency to whatever the avlue is
     }
 
-    render() {
-        var viewport = this.state.viewport;
+    _dtChange = (d) => {
+        this.setState({
+            dt: Date.parse(d)
+        });
+    }
 
+    render() {
+        let style = {
+            width: "100%",
+            height: "100%"
+        };
+        let viewport = this.state.viewport;
         // mapboxApiAccessToken="pk.eyJ1IjoiY2FrZXNvZndyYXRoIiwiYSI6Ijk5YWI3OTlhMGIxN2I1OWYzYjhlOWJmYjEwNTRjODU0In0._RjYIzLsA5cU-YM6dxGOLQ"
         let agencySelections = this.state.agencies.map((v, i) => {
             return <option value={i}> {v.name} </option>;
@@ -183,14 +303,21 @@ class GTFSMap extends React.Component {
                 </tr>
             );
         });
-        return (
-            <div>
-                <MapGL 
-                    mapboxApiAccessToken="pk.eyJ1IjoiY2FrZXNvZndyYXRoIiwiYSI6Ijk5YWI3OTlhMGIxN2I1OWYzYjhlOWJmYjEwNTRjODU0In0._RjYIzLsA5cU-YM6dxGOLQ"
-                    onChangeViewport={this._onChangeViewport}
-                    {...viewport}
-                />
-                <div id="sidebar">
+
+        let routes = this.state.routes.map((v, i) => {
+            let dStyle = {
+                color: v.route_color
+            };
+            return (
+                <tr style={dStyle}>
+                    <td>{ v.route_id }</td>
+                    <td>{ v.route_short_name }</td>
+                    <td>{ v.route_long_name }</td>
+                </tr>
+            );
+        });
+
+/*<div id="sidebar">
                     <Row><Col md={12} >
                         {this.state.loading_agencies ? 
                             <ProgressBar active bsStyle="info" /> : null}
@@ -237,13 +364,31 @@ class GTFSMap extends React.Component {
                                         </Table>
                                     </Tab>
                                     <Tab eventKey={3} title="Routes">
-                                        
+                                        <Table hover>
+                                            <thead><tr>
+                                                <th>Route ID</th>
+                                                <th>Short Name</th>
+                                                <th>Long Name</th>
+                                            </tr></thead>
+                                        </Table>
                                     </Tab>
+                                    <Tab eventKey={4} title="Schedule Tab">
+                                        <Row id="schedule-info">
+                                            <Col md={12}>
+                                                <FormGroup>
+                                                    <DatePicker value={this.state.dt.toISOString()} onChange={this.dtChange} />
+                                                </FormGroup>
+                                            </Col>
+                                        </Row>
+                                    </Tab>*
                                 </Tabs>
                                 : null }
                         </Container>
                     </Col></Row>
-                </div>
+                </div>*/
+
+        return (
+            <div id="map" style={style}>
             </div>
         );
     }
