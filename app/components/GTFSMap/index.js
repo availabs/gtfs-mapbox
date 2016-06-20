@@ -21,7 +21,7 @@ var map = new mapboxgl.Map({
 });*/
 
 // console.log(map);
-console.log(topojson);
+// console.log(topojson);
 
 class GTFSMap extends React.Component {
     constructor(props) {
@@ -79,6 +79,7 @@ class GTFSMap extends React.Component {
 
         map.on("load", () => {
             this.loadRoutes(2, function(){});
+            this.loadStops(2, function(){});
         });
     }
 
@@ -184,7 +185,7 @@ class GTFSMap extends React.Component {
                 let data = JSON.parse(res.text),
                     bounds = d3.geo.bounds(data);
                 // do layers?
-                console.log(res, data);
+                // console.log(res, data);
                 let geo = data;
                 /*let topology = topojson.topology(
                     {routes: data},
@@ -249,9 +250,9 @@ class GTFSMap extends React.Component {
                     }
                 });*/
                 geo.features.forEach((route) => {
-                    this.routes.push(route.properties);
+                    this.state.routes.push(route.properties);
                 });
-                
+
                 cb();
             }
         }, (e) => {
@@ -264,10 +265,49 @@ class GTFSMap extends React.Component {
             stops: []
         });
 
-        request.get(apiUrl + "agency/" + id + "/stops/").then((err, res) => {
+        request.get(apiUrl + "agency/" + id + "/stops").then((res) => {
             let data = JSON.parse(res.text);
             // plot stops
-            console.log(data);
+            let geo = topojson.feature(data, data.objects.stops);
+            console.log(geo);
+            this.state.map.addSource("stops_source", {
+                "type": "geojson",
+                "data": geo
+            });
+            this.state.map.addLayer({
+                "id": "stops_layer",
+                "type": "symbol",
+                "source": "stops_source",
+                "layout": {
+                    "icon-image": "bus-15"
+                }
+            });
+
+            let popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            this.state.map.on("mousemove", (e) => {
+                let features = this.state.map.queryRenderedFeatures(e.point, { layers: ["markers"] });
+                this.state.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
+
+                if(!features.length) {
+                    popup.remove();
+                    return;
+                }
+
+                let feature = features[0];
+
+                popup.setLngLat(feature.geometry.coordinates)
+                    .setHTML((() => {
+                        return "<p><b>Stop Name:</b>&nbsp;" + feature.properties.stop_name + "</p>" 
+                                + "<p><b>Stop ID:</b>&nbsp;" + feature.properites.stop_id + "</p>"
+                                + "<p><b>Stop Code:</b>&nbsp;" + feature.properites.stop_code + "</p>";
+                    })())
+                    .addTo(map);
+            });
+
             cb();
         }, (e) => {
             console.log("err", e);
