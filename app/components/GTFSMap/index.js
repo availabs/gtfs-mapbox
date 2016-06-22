@@ -78,6 +78,31 @@ class GTFSMap extends React.Component {
         });
 
         map.on("load", () => {
+            let popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+            console.log(popup);
+
+            this.state.map.on("mousemove", (e) => {
+                let features = this.state.map.queryRenderedFeatures(e.point, { layers: ["stops_layer"] });
+                this.state.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
+                // console.log("features", features);
+                if(!features.length) {
+                    popup.remove();
+                    return;
+                }
+
+                let feature = features[0];
+                // console.log("feature", feature);
+                popup.setLngLat(feature.geometry.coordinates)
+                    .setHTML((() => {
+                        return "<p><b>Stop Name:</b>&nbsp;" + feature.properties.stop_name + "</p>" 
+                                + "<p><b>Stop ID:</b>&nbsp;" + feature.properties.stop_id + "</p>"
+                                + "<p><b>Stop Code:</b>&nbsp;" + feature.properties.stop_code + "</p>";
+                    })())
+                    .addTo(map);
+            });
             this.loadRoutes(2, function(){});
             this.loadStops(2, function(){});
         });
@@ -281,31 +306,6 @@ class GTFSMap extends React.Component {
                 "layout": {
                     "icon-image": "bus-15"
                 }
-            });
-
-            let popup = new mapboxgl.Popup({
-                closeButton: false,
-                closeOnClick: false
-            });
-
-            this.state.map.on("mousemove", (e) => {
-                let features = this.state.map.queryRenderedFeatures(e.point, { layers: ["markers"] });
-                this.state.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
-
-                if(!features.length) {
-                    popup.remove();
-                    return;
-                }
-
-                let feature = features[0];
-
-                popup.setLngLat(feature.geometry.coordinates)
-                    .setHTML((() => {
-                        return "<p><b>Stop Name:</b>&nbsp;" + feature.properties.stop_name + "</p>" 
-                                + "<p><b>Stop ID:</b>&nbsp;" + feature.properites.stop_id + "</p>"
-                                + "<p><b>Stop Code:</b>&nbsp;" + feature.properites.stop_code + "</p>";
-                    })())
-                    .addTo(map);
             });
 
             cb();
