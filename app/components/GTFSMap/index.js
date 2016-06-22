@@ -97,14 +97,18 @@ class GTFSMap extends React.Component {
                 // console.log("feature", feature);
                 popup.setLngLat(feature.geometry.coordinates)
                     .setHTML((() => {
+                        console.log(feature.properties.stop_code);
                         return "<p><b>Stop Name:</b>&nbsp;" + feature.properties.stop_name + "</p>" 
                                 + "<p><b>Stop ID:</b>&nbsp;" + feature.properties.stop_id + "</p>"
-                                + "<p><b>Stop Code:</b>&nbsp;" + feature.properties.stop_code + "</p>";
+                                + (feature.properties.stop_code === "null" ?
+                                "" : 
+                                "<p><b>Stop Code:</b>&nbsp;" + feature.properties.stop_code + "</p>"
+                                : "");
                     })())
                     .addTo(map);
             });
-            this.loadRoutes(2, function(){});
-            this.loadStops(2, function(){});
+            this.loadRoutes(1, function(){});
+            this.loadStops(1, function(){});
         });
     }
 
@@ -207,6 +211,7 @@ class GTFSMap extends React.Component {
 
         request.get(apiUrl + "agency/" + id + "/routes/").then((res) => {
             if(res) {
+                console.time("loadRoutes");
                 let data = JSON.parse(res.text),
                     bounds = d3.geo.bounds(data);
                 // do layers?
@@ -233,7 +238,7 @@ class GTFSMap extends React.Component {
 
                 // console.log([bounds[0].reverse(),bounds[1].reverse()]);
                 let i = 0;
-                this.state.map.fitBounds([bounds[0],bounds[1]])
+                this.state.map.fitBounds([bounds[0],bounds[1]]);
                 geo.features.forEach((feature) => {
                     feature.geometry.coordinates.forEach((coord) => {
                         // console.log(feature, coord);
@@ -259,8 +264,9 @@ class GTFSMap extends React.Component {
                         });
                         i++;
                     });
+                    
+                    // console.timeEnd
                 });
-
                 /*this.state.map.addSource("routes_source", {
                     type: "geojson",
                     "data": geo
